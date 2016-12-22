@@ -1,0 +1,79 @@
+<ProxyEndpoint name='default'>
+  <Description>Proxy to demonstrate hashcash Java callout</Description>
+  <HTTPProxyConnection>
+    <BasePath>/hashcash</BasePath>
+    <Properties/>
+    <VirtualHost>secure</VirtualHost>
+  </HTTPProxyConnection>
+
+  <FaultRules/>
+
+  <PreFlow name="PreFlow">
+      <Request>
+        <Step>
+          <Name>RF-BadHeader</Name>
+          <Condition>NOT (request.header.content-type =| "application/json")</Condition>
+        </Step>
+      </Request>
+      <Response>
+      </Response>
+  </PreFlow>
+
+  <PostFlow name="PostFlow">
+      <Request/>
+      <Response>
+      </Response>
+  </PostFlow>
+
+  <Flows>
+    <Flow name='verify1'>
+      <Description>verify a hashcash - no resource</Description>
+      <Request>
+        <Step><Name>JS-UnpackParams</Name></Step>
+        <Step>
+          <Name>RF-InvalidInput</Name>
+          <Condition>parsedInput.bits = null OR parsedInput.hash = null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step><Name>Java-VerifyHashcash-1</Name></Step>
+        <Step><Name>AM-GoodResponse</Name></Step>
+      </Response>
+      <Condition>(proxy.pathsuffix ~ "/t1-verify-no-resource") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name='verify1'>
+      <Description>verify a hashcash - no resource</Description>
+      <Request>
+        <Step><Name>JS-UnpackParams</Name></Step>
+        <Step>
+          <Name>RF-InvalidInput</Name>
+          <Condition>parsedInput.bits = null OR parsedInput.hash = null OR parsedInput.resource = null</Condition>
+        </Step>
+      </Request>
+      <Response>
+        <Step><Name>Java-VerifyHashcash-2</Name></Step>
+        <Step><Name>AM-GoodResponse</Name></Step>
+      </Response>
+      <Condition>(proxy.pathsuffix ~ "/t1-verify-resource") and (request.verb = "POST")</Condition>
+    </Flow>
+
+    <Flow name='unknown'>
+      <!--
+           applies as a "default" flow, in case none of the conditions
+           for the above flows evaluated to true.
+      -->
+      <Description>Unknown request</Description>
+      <Request>
+        <Step><Name>RF-UnknownRequest</Name></Step>
+      </Request>
+      <Response/>
+    </Flow>
+
+  </Flows>
+
+  <RouteRule name='LoopbackRoute'>
+    <!-- no target! no backend call -->
+  </RouteRule>
+
+</ProxyEndpoint>

@@ -1,0 +1,14 @@
+<RaiseFault name='RF-InvalidInput'>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+  <FaultResponse>
+    <Set>
+      <Payload contentType='application/json'>{
+  "error" : "invalid input. Pass a json like the hint.",
+  "hint" : { "bits": 16, "hash" : "1:3i3938:0229::iu9u:393" }
+}
+</Payload>
+      <StatusCode>400</StatusCode>
+      <ReasonPhrase>Bad Request</ReasonPhrase>
+    </Set>
+  </FaultResponse>
+</RaiseFault>

@@ -1,0 +1,11 @@
+<JavaCallout name='Java-VerifyHashcash-2'>
+  <Properties>
+    <Property name='action'>verify</Property>
+    <Property name='timeAllowance'>60000</Property>
+    <Property name='hash'>{parsedInput.hash}</Property>
+    <Property name='requiredBits'>{parsedInput.bits}</Property>
+    <Property name='requiredResource'>{parsedInput.resource}</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.HashcashCallout</ClassName>
+  <ResourceURL>java://edge-custom-hashcash-callout.jar</ResourceURL>
+</JavaCallout>

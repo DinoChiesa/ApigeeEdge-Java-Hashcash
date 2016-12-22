@@ -1,0 +1,21 @@
+<AssignMessage name='AM-GoodResponse'>
+  <Remove>
+    <Headers/>
+  </Remove>
+  <Set>
+    <Payload contentType='application/json'>{
+    "hash" : "{hashcash_hash}",
+    "requiredBits" : {hashcash_requiredBits},
+    "computedBits" : {hashcash_computedBits},
+    "isValid" : "{hashcash_isValid}",
+    "cashDateFormatted": "{hashcash_cashDateFormatted}",
+    "nowFormatted": "{hashcash_nowFormatted}",
+    "reason": "{hashcash_reason:--}",
+    "timeAllowance": {hashcash_timeAllowance:--},
+    "timeDelta": {hashcash_timeDelta:--}
+}</Payload>
+    <StatusCode>200</StatusCode>
+    <ReasonPhrase>OK</ReasonPhrase>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>
