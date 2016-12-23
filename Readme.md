@@ -61,6 +61,7 @@ The policy is configured via properties set in the XML.  You can set these prope
 | property name     | status    | description                                | 
 | ----------------- |-----------|--------------------------------------------| 
 | action            | Required  | value must be "verify"                     |
+| hash              | Required  | the hashcash to verify.                    |
 | requiredBits      | Required  | numeric, number of bits for hash collision.|
 | requiredResource  | Optional  | the resource to check in the hashcash.     |
 | timeAllowance     | Optional  | number of milliseconds to allow for time skew. Defaults to 10000 (10 seconds). Use -1 to disable the time check. |
@@ -82,8 +83,7 @@ The policy is configured via properties set in the XML.  You can set these prope
 </JavaCallout>
 ```
 
-The above retrieves the hashcash from a header in the request, named "hash".
-
+The above retrieves the hashcash from a header in the request, named "hash". You can modify that variable name to allow the policy to read the hash from any context variable. 
 
 
 ### Verifying a Hashcash with a Resource
