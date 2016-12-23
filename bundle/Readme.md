@@ -51,7 +51,6 @@ These parameters are then used by the HashcashCallout during its check.
 (Obviously, passing the enforcement value here is done for demonstration purposes. You wouldn't
 normally allow actual clients to your APIs to pass this parameter. )
 
-
 The result will be something like this, in the case of success:
 
 ```json
@@ -84,13 +83,70 @@ The result will be something like this, in the case of success:
 }
 ```
 
-
 The time allowance in the policy configuration inside the API Proxy in
 this example bundle is set to 60000, or 60 seconds.  If you cannot
 generate the hashcash and then transmit it within 60 seconds, the
 hashcash will always be rejected. If you have trouble doing the
 cut/paste, then you may wish to modify the API Proxy bundle to relax the
 time check. 
+
+
+If you try to verify a hashcash that does not meet the minimum hash collision,
+the Callout policy will generate an error. For example: 
+
+```
+curl -X POST -H content-type:application/json \
+  https://cap500-test.apigee.net/hashcash/t1-verify-no-resource \
+  -d '{
+    "hash" : "1:22:161223000303:dino@example.org::43ed425802db4404:a87b708182642193",
+    "bits" : 32
+    }'
+```
+
+The response looks like this:
+
+```json
+{
+    "hash" : "1:22:161223000303:dino@example.org::43ed425802db4404:a87b708182642193",
+    "requiredBits" : 32,
+    "computedBits" : 22,
+    "isValid" : "false",
+    "cashDateFormatted": "",
+    "nowFormatted": "",
+    "reason": "hash collision insufficient",
+    "timeAllowance": --,
+    "timeDelta": --
+}
+```
+
+This response is dynamically generated from the output variables set
+into the message context by the policy.  The variables are all prefixed with the string "hashcash_".
+In other words you must use this from within a subsequent JS callout:
+
+
+```javascript
+context.getVariable('hashcash_isValid');
+context.getVariable('hashcash_cashDateFormatted');
+// etc
+```
+
+Of interest are:
+
+| variable name     | description                                                      |
+| ----------------- |------------------------------------------------------------------|
+| hash              | value of the hash that was checked.                              |
+| isValid           | true/false. Indicating whether the hashcash was valid.           |
+| requiredBits      | number of bits configured in the policy.                         |
+| computedBits      | number of bits computed on the received hash.                    |
+| reason            | the reason the hashcash was deemed invalid. (if applicable)      |
+| cashDate          | ms since epoch on the hashcash.                                  |
+| cashDateFormatted | time on the hashcash, formatted. eg 2016-12-23T00:03:03.000+0000 |
+| timeDelta         | ms difference between NOW and the date on the hashcash.          |
+| error             | error message if the callout experienced an exception while processing. |
+
+Also: you will see these variables in the trace window, if you trace your API proxy.
+
+
 
 
 ### Example 2: Verify a hashcash and check the resource
