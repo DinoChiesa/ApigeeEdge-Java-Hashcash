@@ -30,34 +30,29 @@ The output will be something like this:
 1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535
 ```
 
-Then, pass that hashcash to the proxy:
+You will notice that it takes longer to generate a hash collision with a
+higher bit value.  If you pass 22 it normally takes 5 or 6 seconds.  If
+you pass 24 it can take a goooood long while. Passing 32 might take
+weeks of computation.
+
+Regardless, the output of that script is a hashcash.  Pass that hashcash to the proxy, along with a value for the number of bits to enforce for hash collision:
 
 ```
 curl -i -X POST -H content-type:application/json \
-  https://APIHOST/hashcash/verify \
+  https://APIHOST/hashcash/t1-verify-no-resource \
   -d '{
     "hash" : "1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535",
     "bits" : 16
     }'
 ```
 
-The result will be something like this, in the case of time skew failure: 
+These parameters are then used by the HashcashCallout during its check. 
 
-```json
-{
-    "hash" : "1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535",
-    "requiredBits" : 16,
-    "computedBits" : 18,
-    "isValid" : "false",
-    "cashDateFormatted": "2016-12-22T23:38:41.000+0000",
-    "nowFormatted": "2016-12-22T23:38:56.537+0000",
-    "reason": "timestamp check failed",
-    "timeAllowance": 10000,
-    "timeDelta": 15537
-}
-```
+(Obviously, passing the enforcement value here is done for demonstration purposes. You wouldn't
+normally allow actual clients to your APIs to pass this parameter. )
 
-or like this, in the case of success:
+
+The result will be something like this, in the case of success:
 
 ```json
 {
@@ -73,13 +68,61 @@ or like this, in the case of success:
 }
 ```
 
-The time allowance in the policy configuration inside the API Proxy is
-set to 60000, or 60 seconds.  If you cannot generate the hashcash and
-then transmit it within 60 seconds, the hashcash will always be
-rejected.
+...or like this, in the case of time skew failure: 
+
+```json
+{
+    "hash" : "1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535",
+    "requiredBits" : 16,
+    "computedBits" : 18,
+    "isValid" : "false",
+    "cashDateFormatted": "2016-12-22T23:38:41.000+0000",
+    "nowFormatted": "2016-12-22T23:38:56.537+0000",
+    "reason": "timestamp check failed",
+    "timeAllowance": 10000,
+    "timeDelta": 15537
+}
+```
+
+
+The time allowance in the policy configuration inside the API Proxy in
+this example bundle is set to 60000, or 60 seconds.  If you cannot
+generate the hashcash and then transmit it within 60 seconds, the
+hashcash will always be rejected. If you have trouble doing the
+cut/paste, then you may wish to modify the API Proxy bundle to relax the
+time check. 
+
+
+### Example 2: Verify a hashcash and check the resource
+
+When you specify the resource in the Java callout configuration, the
+callout simply performs a string comparison. This is a minor check, but
+including this check into the Callout can help avoid a condition
+statement in the proxy flow.
+
+Generate the hashcash:
+
+```
+./scripts/hashcashTool.sh  -r dino@example.org -b 22
+```
+
+Verify it:
+
+```
+curl -i -X POST -H content-type:application/json \
+  https://APIHOST/hashcash/t2-verify-resource \
+  -d '{
+    "hash" : "1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535",
+    "bits" : 22,
+    "resource" : "dino@example.org"
+    }'
+```
+
 
 
 ## Notes
+
+1. This callout is tested to verify only version 1 hashcash. 
 
 1. Normally you would not allow the client or caller to specify the
    required bits, as is done in this example. This is done just for

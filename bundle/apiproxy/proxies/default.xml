@@ -55,7 +55,7 @@
         <Step><Name>Java-VerifyHashcash-2</Name></Step>
         <Step><Name>AM-GoodResponse</Name></Step>
       </Response>
-      <Condition>(proxy.pathsuffix ~ "/t1-verify-resource") and (request.verb = "POST")</Condition>
+      <Condition>(proxy.pathsuffix ~ "/t2-verify-resource") and (request.verb = "POST")</Condition>
     </Flow>
 
     <Flow name='unknown'>
