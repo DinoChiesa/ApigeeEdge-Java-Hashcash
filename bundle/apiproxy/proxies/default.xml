@@ -15,14 +15,12 @@
           <Condition>NOT (request.header.content-type =| "application/json")</Condition>
         </Step>
       </Request>
-      <Response>
-      </Response>
+      <Response/>
   </PreFlow>
 
   <PostFlow name="PostFlow">
       <Request/>
-      <Response>
-      </Response>
+      <Response/>
   </PostFlow>
 
   <Flows>
