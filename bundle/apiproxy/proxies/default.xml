@@ -26,7 +26,7 @@
   </PostFlow>
 
   <Flows>
-    <Flow name='verify1'>
+    <Flow name='verify 1'>
       <Description>verify a hashcash - no resource</Description>
       <Request>
         <Step><Name>JS-UnpackParams</Name></Step>
@@ -42,7 +42,7 @@
       <Condition>(proxy.pathsuffix ~ "/t1-verify-no-resource") and (request.verb = "POST")</Condition>
     </Flow>
 
-    <Flow name='verify1'>
+    <Flow name='verify 2'>
       <Description>verify a hashcash - no resource</Description>
       <Request>
         <Step><Name>JS-UnpackParams</Name></Step>

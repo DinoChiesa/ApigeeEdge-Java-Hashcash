@@ -8,19 +8,24 @@ It can be used to aid in limiting denial-of-service attacks or enforcing a proof
 
 As API Adoption increases, denial-of-service and brute force bot attacks are more often targeting APIs, and the stakes are growing larger. A business that runs commerce or customer loyalty programs through their APIs stands to lose customer loyalty if attacks compromise service.
 
-[HashCash](http://www.hashcash.org/) is a mechanism first conceived to raise the computational cost of sending email; the goal was to reduce spam email sent by bots. Hashcash requires that the sender produce a value that is computationally expensive to generate, but computationally easy to verify.
+[HashCash](http://www.hashcash.org/) is a proof-of-work algorithm first conceived to raise the computational cost of sending email; the goal was to reduce spam email sent by bots. Hashcash requires that the sender produce a value that is computationally expensive to generate, but computationally easy to verify.
 
 It does this by requiring the client or sender to generate a "partial hash collision". 
 
-A hash function is a cryptographic function for which it is supposed to be hard to find two inputs that produce the same output. Common hash functions are MD5 and SHA{1,256,384,512}. (Hashcash uses the SHA1 hash function).  Under Hashcash, the client must find a text that produces a hash value that conforms to a particular constraint - for example, it exhibits 20 bits of zeros at the start. This is the "partial hash collision".
+A hash function is a cryptographic function for which it is supposed to be hard
+to find two inputs that produce the same output. Common hash functions are MD5
+and SHA{1,256,384,512}. (Hashcash uses the SHA1 hash function). Under Hashcash,
+the client must find a text that produces a hash value that conforms to a
+particular constraint - for example, the hash value exhibits 20 bits of zeros at the
+start. This is the "partial hash collision".
 
 Because there is no way to know the hash value before computing it, the client
 must try lots of test strings in order to find a string that generates a hash
-with leading zeros. The receiver of the hashcash can easily verify that the
+that starts with a sequence of zeros. The receiver of the hashcash can easily verify that the
 client has selected a valid test string. Just one hash computation will do. When
 the receiver (the API Proxy in Apigee Edge) verifies the hashcash, it verifies
 that the client has performed the work required to find the hash collision. This is
-sometimes called "proof-of-work". 
+sometimes called "proof-of-work".
 
 For more on Hashcash, you may want to read [the Wikipedia
 article](https://en.wikipedia.org/wiki/Hashcash).
