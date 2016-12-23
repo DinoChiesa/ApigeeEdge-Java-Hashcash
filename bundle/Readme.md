@@ -9,12 +9,23 @@ It can be used on private cloud or public cloud instances of Edge.  It relies on
 You will need to compute a hashcash on the client side in order to send one to
 the server. For this purpose, this repo includes a simple Java program that generates Hashcashes.
 
-There is also a wrapper script to drive the Java program and curl.  
+There is also a wrapper script to drive the Java program.  
 
 In all the examples that follow, you should replace the APIHOST with something like
 
 * ORGNAME-ENVNAME.apigee.net, if running in the Apigee-managed public cloud
 * VHOST_IP:VHOST_PORT, if running in a self-managed cloud
+
+## Prepare
+
+To provision the example API proxy into your organization, you can use the provisioning script included here:
+
+```sh
+scripts/provisionProxy.sh  -o ORGNAME -e ENVNAME -v 
+```
+
+This script will use curl to import and deploy the proxy. 
+
 
 
 ### Example 1: Verify a valid hashcash
@@ -172,6 +183,14 @@ curl -i -X POST -H content-type:application/json \
     "bits" : 22,
     "resource" : "dino@example.org"
     }'
+```
+
+## Teardown
+
+To de-provision the example API proxy from your organization, again use the provisioning script:
+
+```sh
+scripts/provisionProxy.sh -o ORGNAME -e ENVNAME -v -r 
 ```
 
 
