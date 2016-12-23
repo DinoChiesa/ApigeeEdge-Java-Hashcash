@@ -1,4 +1,4 @@
-# Java Hashcash Edge callout
+# Apigee Edge callout for Hashcash
 
 This directory contains the a simple custom policy for Apigee Edge. The
 policy performs a [HashCash](http://www.hashcash.org/) verification.
@@ -8,19 +8,31 @@ It can be used to aid in limiting denial-of-service attacks or enforcing a proof
 
 As API Adoption increases, denial-of-service and brute force bot attacks are more often targeting APIs, and the stakes are growing larger. A business that runs commerce or customer loyalty programs through their APIs stands to lose customer loyalty if attacks compromise service.
 
-HashCash is a mechanism first conceived to raise the computational cost of sending email, and thereby reduce spam. It requires that the sender produce a value that is computationally expensive to generate, but computationally easy to verify.
+[HashCash](http://www.hashcash.org/) is a mechanism first conceived to raise the computational cost of sending email; the goal was to reduce spam email sent by bots. Hashcash requires that the sender produce a value that is computationally expensive to generate, but computationally easy to verify.
 
 It does this by requiring the client or sender to generate a "partial hash collision". 
 
-A hash function is a cryptographic function for which it is supposed to be hard to find two inputs that produce the same output. Common hash functions are MD5 and SHA1. (Hashcash uses the SHA1 hash function).  Under Hashcash, the client must find a text that produces a hash value that conforms to a particular constraint - for example, it exhibits 4 bytes of zeros at the start. This is the "partial hash collision"
+A hash function is a cryptographic function for which it is supposed to be hard to find two inputs that produce the same output. Common hash functions are MD5 and SHA{1,256,384,512}. (Hashcash uses the SHA1 hash function).  Under Hashcash, the client must find a text that produces a hash value that conforms to a particular constraint - for example, it exhibits 20 bits of zeros at the start. This is the "partial hash collision".
 
-To do this, the client must try lots of test strings. The receiver of the hashcash can easily verify that the client has selected a valid test string. Just one hash computation will do. When the receiver (the API Proxy in Apigee Edge) verifies the hashcash, it verifies that the client has performed the work to find the hash collision. This is sometimes called "proof-of-work".
+Because there is no way to know the hash value before computing it, the client
+must try lots of test strings in order to find a string that generates a hash
+with leading zeros. The receiver of the hashcash can easily verify that the
+client has selected a valid test string. Just one hash computation will do. When
+the receiver (the API Proxy in Apigee Edge) verifies the hashcash, it verifies
+that the client has performed the work required to find the hash collision. This is
+sometimes called "proof-of-work". 
 
-For more on Hashcash, you may want to read [the Wikipedia article](https://en.wikipedia.org/wiki/Hashcash).
+For more on Hashcash, you may want to read [the Wikipedia
+article](https://en.wikipedia.org/wiki/Hashcash).
+
+By including a Hashcash check in your API Proxies, you can force API clients to
+demonstrate proof-of-work. This discourages bot attacks.
+
 
 ## Using the Hashcash policy in Apigee Edge
 
-This custom policy makes it easy to embed Hashcash verification in any API Proxy running in Apigee Edge.
+The custom policy included here makes it easy to embed Hashcash verification in
+any API Proxy running in Apigee Edge.
 
 You do not need to build the source code in order to use the policy in Apigee Edge. 
 All you need is the pre-built JAR, and the appropriate configuration for the policy. 
@@ -50,6 +62,9 @@ Whether you use the pre-built JAR or you build it yourself, follow these instruc
    ```pushapi -v -d -o ORGNAME -e test -n hashcash ```
 
 4. Use a client to generate and send http requests to the proxy you just deployed .
+
+
+There is [a demonstration bundle](bundle) included here that does all of this for you.
 
 
 ## Notes on Usage
@@ -166,39 +181,6 @@ allowance.
 
 You can find an example proxy bundle that uses the policy, [here in this repo](bundle/apiproxy).
 
-
-## Building
-
-Building from source requires Java 1.7, and Maven. 
-
-1. unpack (if you can read this, you've already done that).
-
-2. Before building _the first time_, configure the build on your machine by loading the Apigee jars into your local cache:
-  ```
-  ./buildsetup.sh
-  ```
-
-3. Build with maven.  
-  ```
-  cd project
-  mvn clean package
-  ```
-  This will build the jars and also run all the tests.
-
-
-
-## Build Dependencies
-
-- Apigee Edge expressions v1.0
-- Apigee Edge message-flow v1.0
-- Apache Commons Lang3 3.5
-- testng v6.8.7 (needed only for building+running tests)
-- jmockit v1.7 (needed only for building+running tests)
-
-
-These jars must be available on the classpath for the compile to
-succeed. You do not need to worry about these jars if you are not building from source. The buildsetup.sh script will download the Apigee files for
-you automatically, and will insert them into your maven cache. The pom file will take care of the other Jars. 
 
 
 ## License
