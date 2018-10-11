@@ -4,6 +4,11 @@ This Apigee Edge API Proxy demonstrates the use of the custom Java policy that v
 It can be used on private cloud or public cloud instances of Edge.  It relies on [the custom Java policy](../callout) included here.
 
 
+## Disclaimer
+
+This example is not an official Google product, nor is it part of an official Google product.
+It's just an example.
+
 ## Notes on usage
 
 You will need to compute a hashcash on the client side in order to send one to
@@ -15,6 +20,7 @@ In all the examples that follow, you should replace the APIHOST with something l
 
 * ORGNAME-ENVNAME.apigee.net, if running in the Apigee-managed public cloud
 * VHOST_IP:VHOST_PORT, if running in a self-managed cloud
+
 
 ## Prepare
 
@@ -46,10 +52,11 @@ higher bit value.  If you pass 22 it normally takes 5 or 6 seconds.  If
 you pass 24 it can take a goooood long while. Passing 32 might take
 weeks of computation.
 
-Regardless, the output of that script is a hashcash.  Pass that hashcash to the proxy, along with a value for the number of bits to enforce for hash collision:
+Regardless, the output of that script is a hashcash. Pass that hashcash to the proxy, along with a value for the number of bits to enforce for hash collision:
 
 ```
 HASH=1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535
+APIHOST=$ORG-$ENV.apigee.net
 curl -i -X POST -H content-type:application/json \
   https://$APIHOST/hashcash/t1-verify-no-resource \
   -d '{
@@ -221,3 +228,14 @@ scripts/provisionProxy.sh -o ORGNAME -e ENVNAME -v -r
    inappropriate in a production environment.  Normally you would want
    to emit as little information as possible. The example sends back all
    of this information just for demonstration purposes.
+
+
+
+## Support
+
+This callout is open-source software, and is not a supported part of Apigee Edge.
+If you need assistance, you can try inquiring on
+[The Apigee Community Site](https://community.apigee.com).  There is no service-level
+guarantee for responses to inquiries regarding this callout.
+
+

@@ -4,6 +4,11 @@ This directory contains the a simple custom policy for Apigee Edge. The
 policy performs a [HashCash](http://www.hashcash.org/) verification.
 It can be used to aid in limiting denial-of-service attacks or enforcing a proof-of-work on clients.
 
+## Disclaimer
+
+This example is not an official Google product, nor is it part of an official Google product.
+It's just a sample.
+
 ## Background
 
 As API Adoption increases, denial-of-service and brute force bot attacks are more often targeting APIs, and the stakes are growing larger. A business that runs commerce or customer loyalty programs through their APIs stands to lose customer loyalty if attacks compromise service.
@@ -191,6 +196,15 @@ You can find an example proxy bundle that uses the policy, [here in this repo](b
 
 This material is Copyright 2016-2018 Google, LLC.
 and is licensed under the [Apache 2.0 License](LICENSE). This includes the Java code as well as the API Proxy configuration.
+
+
+## Support
+
+This callout is open-source software, and is not a supported part of Apigee Edge.
+If you need assistance, you can try inquiring on
+[The Apigee Community Site](https://community.apigee.com).  There is no service-level
+guarantee for responses to inquiries regarding this callout.
+
 
 ## Bugs
 
