@@ -82,12 +82,13 @@ There is one callout class, com.google.apigee.edgecallouts.pow.HashcashCallout.
 
 The policy is configured via properties set in the XML.  You can set these properties:
 
-| property name     | status    | description                                |
-| ----------------- |-----------|--------------------------------------------|
-| action            | Required  | value must be "verify"                     |
-| hash              | Required  | the hashcash to verify.                    |
-| requiredBits      | Required  | numeric, number of bits for hash collision.|
-| requiredResource  | Optional  | the resource to check in the hashcash.     |
+| property name     | status    | description                                                         |
+| ----------------- |-----------|---------------------------------------------------------------------|
+| action            | Required  | value must be "verify"                                              |
+| hash              | Required  | the hashcash to verify.                                             |
+| requiredBits      | Required  | numeric, number of bits for hash collision.                         |
+| function          | Optional  | the hash function. Defaults to SHA1. Can use MD5, SHA-{256,384,512} |
+| requiredResource  | Optional  | the resource to check in the hashcash.                              |
 | timeAllowance     | Optional  | number of milliseconds to allow for time skew: the delta between "now" and the time asserted in the hashcash solution. This defaults to 10000 (10 seconds). Use -1 to disable the time check. |
 
 
