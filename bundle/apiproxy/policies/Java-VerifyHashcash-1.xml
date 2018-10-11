@@ -5,6 +5,6 @@
     <Property name='hash'>{parsedInput.hash}</Property>
     <Property name='requiredBits'>{parsedInput.bits}</Property>
   </Properties>
-  <ClassName>com.google.apigee.edgecallouts.HashcashCallout</ClassName>
-  <ResourceURL>java://edge-custom-hashcash-callout.jar</ResourceURL>
+  <ClassName>com.google.apigee.edgecallouts.pow.HashcashCallout</ClassName>
+  <ResourceURL>java://edge-custom-hashcash-callout-1.0.1.jar</ResourceURL>
 </JavaCallout>

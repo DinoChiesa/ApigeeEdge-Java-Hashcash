@@ -9,7 +9,7 @@ It can be used on private cloud or public cloud instances of Edge.  It relies on
 You will need to compute a hashcash on the client side in order to send one to
 the server. For this purpose, this repo includes a simple Java program that generates Hashcashes.
 
-There is also a wrapper script to drive the Java program.  
+There is also a wrapper script to drive the Java program.
 
 In all the examples that follow, you should replace the APIHOST with something like
 
@@ -21,10 +21,10 @@ In all the examples that follow, you should replace the APIHOST with something l
 To provision the example API proxy into your organization, you can use the provisioning script included here:
 
 ```sh
-scripts/provisionProxy.sh  -o ORGNAME -e ENVNAME -v 
+scripts/provisionProxy.sh  -o ORGNAME -e ENVNAME -v
 ```
 
-This script will use curl to import and deploy the proxy. 
+This script will use curl to import and deploy the proxy.
 
 
 
@@ -49,18 +49,19 @@ weeks of computation.
 Regardless, the output of that script is a hashcash.  Pass that hashcash to the proxy, along with a value for the number of bits to enforce for hash collision:
 
 ```
+HASH=1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535
 curl -i -X POST -H content-type:application/json \
-  https://APIHOST/hashcash/t1-verify-no-resource \
+  https://$APIHOST/hashcash/t1-verify-no-resource \
   -d '{
-    "hash" : "1:18:161222233841:dchiesa@google.com::d5d66d53b1c04d48:fa8a1e5c10921535",
+    "hash" : "'$HASH'",
     "bits" : 16
     }'
 ```
 
-These parameters are then used by the HashcashCallout during its check. 
+These parameters are then used by the HashcashCallout during its check.
 
-(Obviously, passing the enforcement value here is done for demonstration purposes. You wouldn't
-normally allow actual clients to your APIs to pass this parameter. )
+Obviously, passing the enforcement value here is done for demonstration purposes. You wouldn't
+normally allow actual clients to your APIs to pass this parameter.
 
 The result will be something like this, in the case of success:
 
@@ -78,7 +79,7 @@ The result will be something like this, in the case of success:
 }
 ```
 
-...or like this, in the case of time skew failure: 
+...or like this, in the case of time skew failure:
 
 ```json
 {
@@ -99,11 +100,11 @@ this example bundle is set to 60000, or 60 seconds.  If you cannot
 generate the hashcash and then transmit it within 60 seconds, the
 hashcash will always be rejected. If you have trouble doing the
 cut/paste, then you may wish to modify the API Proxy bundle to relax the
-time check. 
+time check.
 
 
 If you try to verify a hashcash that does not meet the minimum hash collision,
-the Callout policy will generate an error. For example: 
+the Callout policy will generate an error. For example:
 
 ```
 curl -X POST -H content-type:application/json \
@@ -190,14 +191,14 @@ curl -i -X POST -H content-type:application/json \
 To de-provision the example API proxy from your organization, again use the provisioning script:
 
 ```sh
-scripts/provisionProxy.sh -o ORGNAME -e ENVNAME -v -r 
+scripts/provisionProxy.sh -o ORGNAME -e ENVNAME -v -r
 ```
 
 
 
 ## Notes
 
-1. This callout is tested to verify only version 1 hashcash. 
+1. This callout is tested to verify only version 1 hashcash.
 
 1. Normally you would not allow the client or caller to specify the
    required bits, as is done in this example. This is done just for
@@ -214,11 +215,9 @@ scripts/provisionProxy.sh -o ORGNAME -e ENVNAME -v -r
    as the resource, in the case of a Hashcash being applied to an API.
    In that case you would want to verify the client_id as well, either before
    or after verifying the hashcash. This is left as an exercise for the reader.
-   
+
 4. This example shows the API proxy returning verbose information to the
    caller indicating the status of the hashcash check. This is
    inappropriate in a production environment.  Normally you would want
    to emit as little information as possible. The example sends back all
    of this information just for demonstration purposes.
-
-

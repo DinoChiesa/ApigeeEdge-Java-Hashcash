@@ -16,17 +16,16 @@ package com.google.apigee;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.commons.lang3.time.DateParser;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.text.ParseException;
 
 /**
  * Class for generation and parsing of <a href="http://www.hashcash.org/">HashCash</a><br>
@@ -39,10 +38,9 @@ import java.text.ParseException;
 public class HashCash implements Comparable<HashCash> {
     public static final int DefaultVersion = 1;
     private static final int hashLength = 160;
-    // NB: java.util.SimpleDateFormat is not thread-safe
-    private static final FastDateFormat[] FORMATS = {
-        FastDateFormat.getInstance("yyMMddHHmmss",TimeZone.getTimeZone("GMT")),
-        FastDateFormat.getInstance("yyMMddHHmm", TimeZone.getTimeZone("GMT"))
+    private static final DateTimeFormatter[] FORMATS = {
+      DateTimeFormatter.ofPattern("yyMMddHHmmss").withZone(ZoneId.of("GMT")),
+      DateTimeFormatter.ofPattern("yyMMddHHmm").withZone(ZoneId.of("GMT"))
     };
 
     private static long milliFor16 = -1;
@@ -51,7 +49,7 @@ public class HashCash implements Comparable<HashCash> {
     private int _version;
     private int _claimedBits;
     private int _computedBits;
-    private Date _date;
+    private Instant _instant;
     private String _resource;
     private Map<String, List<String>> _extensions;
 
@@ -76,8 +74,8 @@ public class HashCash implements Comparable<HashCash> {
 
         int index = 1;
         _claimedBits = (_version == 1)? Integer.parseInt(parts[index++]) : 0;
-        _date = parseDate(parts[index++]);
-        if (_date == null) {
+        _instant = parseDate(parts[index++]);
+        if (_instant == null) {
             throw new IllegalArgumentException("Improperly formed Date");
         }
         _resource = parts[index++];
@@ -96,7 +94,7 @@ public class HashCash implements Comparable<HashCash> {
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
     public static HashCash mintCash(String resource, int value) throws NoSuchAlgorithmException {
-        return mintCash(resource, null, new Date(), value, DefaultVersion);
+        return mintCash(resource, null, null, value, DefaultVersion);
     }
 
     /**
@@ -106,7 +104,7 @@ public class HashCash implements Comparable<HashCash> {
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
     public static HashCash mintCash(String resource, int value, int version) throws NoSuchAlgorithmException {
-        return mintCash(resource, null, new Date(), value, version);
+        return mintCash(resource, null, null, value, version);
     }
 
     /**
@@ -115,7 +113,7 @@ public class HashCash implements Comparable<HashCash> {
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
     public static HashCash mintCash(String resource, Date date, int value) throws NoSuchAlgorithmException {
-        return mintCash(resource, null, date, value, DefaultVersion);
+      return mintCash(resource, null, date.toInstant(), value, DefaultVersion);
     }
 
     /**
@@ -126,7 +124,7 @@ public class HashCash implements Comparable<HashCash> {
      */
     public static HashCash mintCash(String resource, Date date, int value, int version)
         throws NoSuchAlgorithmException {
-        return mintCash(resource, null, date, value, version);
+      return mintCash(resource, null, date.toInstant(), value, version);
     }
 
     /**
@@ -137,7 +135,7 @@ public class HashCash implements Comparable<HashCash> {
      */
     public static HashCash mintCash(String resource, Map<String, List<String> > extensions, int value)
         throws NoSuchAlgorithmException {
-        return mintCash(resource, extensions, new Date(), value, DefaultVersion);
+        return mintCash(resource, extensions, null, value, DefaultVersion);
     }
 
     /**
@@ -149,7 +147,7 @@ public class HashCash implements Comparable<HashCash> {
      */
     public static HashCash mintCash(String resource, Map<String, List<String> > extensions, int value, int version)
         throws NoSuchAlgorithmException {
-        return mintCash(resource, extensions, new Date(), value, version);
+        return mintCash(resource, extensions, null, value, version);
     }
 
     /**
@@ -160,7 +158,7 @@ public class HashCash implements Comparable<HashCash> {
      */
     public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Date date, int value)
         throws NoSuchAlgorithmException {
-        return mintCash(resource, extensions, date, value, DefaultVersion);
+      return mintCash(resource, extensions, date.toInstant(), value, DefaultVersion);
     }
 
     /**
@@ -170,7 +168,7 @@ public class HashCash implements Comparable<HashCash> {
      * @param version Which version to mint.  Only valid values are 0 and 1
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Date date, int value, int version)
+    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Instant instant, int value, int version)
         throws NoSuchAlgorithmException {
         if(version < 0 || version > 1)
             throw new IllegalArgumentException("Only supported versions are 0 and 1");
@@ -181,20 +179,26 @@ public class HashCash implements Comparable<HashCash> {
         if(resource.contains(":"))
             throw new IllegalArgumentException("Resource may not contain a colon.");
 
+        if (instant == null)
+          instant = Instant.now();
+
         HashCash result = new HashCash();
         MessageDigest md = MessageDigest.getInstance("SHA1");
 
         result._resource = resource;
         result._extensions = (null == extensions ? new HashMap<String, List<String> >() : extensions);
-        result._date = date;
+        result._instant = instant;
         result._version = version;
 
         String prefix;
 
         switch(version) {
             case 0:
-                prefix = version + ":" + FORMATS[0].format(date.getTime()) + ":" + resource + ":" +
-                    serializeExtensions(extensions) + ":";
+              prefix = String.format("%d:%s:%s:%s:",
+                                     version,
+                                     FORMATS[0].format(instant),
+                                     resource,
+                                     serializeExtensions(extensions));
                 result._token = generateCash(prefix, value, md);
                 md.reset();
                 md.update(result._token.getBytes());
@@ -203,8 +207,12 @@ public class HashCash implements Comparable<HashCash> {
 
             case 1:
                 result._claimedBits = value;
-                prefix = version + ":" + value + ":" + FORMATS[0].format(date.getTime()) + ":" + resource + ":" +
-                    serializeExtensions(extensions) + ":";
+                prefix = String.format("%d:%d:%s:%s:%s:",
+                                       version,
+                                       value,
+                                       FORMATS[0].format(instant),
+                                       resource,
+                                       serializeExtensions(extensions));
                 result._token = generateCash(prefix, value, md);
                 break;
 
@@ -216,15 +224,15 @@ public class HashCash implements Comparable<HashCash> {
     }
 
 
-    private Date parseDate(String dateString) {
+    private Instant parseDate(String dateString) {
         if (dateString != null) {
             try {
                 // try each date format starting with the most common one
-                for (DateParser format : FORMATS){
+                for (DateTimeFormatter format : FORMATS){
                     try {
-                        return format.parse(dateString);
+                      return Instant.from(format.parse(dateString));
                     }
-                    catch(ParseException ex){ /* gulp */ }
+                    catch(DateTimeParseException ex){ /* gulp */ }
                 }
             }
             catch (Exception e) {
@@ -270,8 +278,8 @@ public class HashCash implements Comparable<HashCash> {
     /**
      * The minting date
      */
-    public Date getDate() {
-        return _date;
+    public Instant getDate() {
+        return _instant;
     }
 
     /**

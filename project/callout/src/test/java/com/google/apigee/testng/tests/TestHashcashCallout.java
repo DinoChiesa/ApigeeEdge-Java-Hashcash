@@ -26,7 +26,7 @@ import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.message.MessageContext;
 import com.apigee.flow.message.Message;
 
-import com.google.apigee.edgecallouts.HashcashCallout;
+import com.google.apigee.edgecallouts.pow.HashcashCallout;
 import com.google.apigee.HashCash;
 
 // import org.codehaus.jackson.map.DeserializationConfig;
@@ -308,7 +308,7 @@ public class TestHashcashCallout {
 
         msgCtxt.setVariable("parsedInput.hash", hc.toString());
         msgCtxt.setVariable("parsedInput.bits", "18");
-        
+
         // execute and retrieve output
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
@@ -329,7 +329,7 @@ public class TestHashcashCallout {
         String hash = msgCtxt.getVariable("hashcash_hash");
         Assert.assertEquals(hash, hc.toString(), "hash");
     }
-    
+
     @Test
     public void test_FreshHash_ResourceMismatch() throws java.security.NoSuchAlgorithmException {
         String resource = "dchiesa@google.com";
@@ -408,7 +408,7 @@ public class TestHashcashCallout {
             error = msgCtxt.getVariable("hashcash_error");
             Assert.assertNull(error, "error");
         }
-        
+
     }
 
 }

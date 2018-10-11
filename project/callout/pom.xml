@@ -5,14 +5,16 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee</groupId>
   <artifactId>edge-custom-hashcash-callout</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.1</version>
   <name>Apigee Edge Custom Hashcash Callout</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <java.version>1.7</java.version>
+    <java.version>1.8</java.version>
+    <hashcash.version>1.0.1</hashcash.version>
+    <guava.version>26.0-jre</guava.version>
     <apiproxy.java.rsrc.dir>../../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
     <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
     <jmockit.version>1.7</jmockit.version>
@@ -20,25 +22,32 @@
 
   <dependencies>
 
+
     <dependency>
-      <groupId>com.google.apigee</groupId>
-      <artifactId>hashcash</artifactId>
-      <version>1.0</version>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.5</version>
+      <groupId>com.google.apigee</groupId>
+      <artifactId>apigee-hashcash</artifactId>
+      <version>${hashcash.version}</version>
     </dependency>
 
     <!--
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
-      <scope>compile</scope>
-    </dependency>
+        <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.5</version>
+        </dependency>
+
+<dependency>
+<groupId>commons-lang</groupId>
+<artifactId>commons-lang</artifactId>
+<version>2.6</version>
+<scope>compile</scope>
+</dependency>
     -->
 
     <!--
@@ -89,13 +98,13 @@ mvn install:install-file \
     <dependency>
       <groupId>com.googlecode.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <version>1.7</version>
+      <version>${jmockit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
-    <finalName>${project.artifactId}</finalName>
+    <finalName>${project.artifactId}-${project.version}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -120,7 +129,7 @@ mvn install:install-file \
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.7.0</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -158,10 +167,11 @@ mvn install:install-file \
               <tasks>
                 <copy todir="${apiproxy.java.rsrc.dir}">
                   <fileset dir="${project.build.directory}">
-                    <include name="${project.artifactId}.jar"/>
+                    <include name="${project.artifactId}-${project.version}.jar"/>
                     <!-- copy any required dependencies tht are not
                          already included in the Edge runtime: -->
-                    <include name="lib/hashcash-1.0.jar"/>
+                    <include name="lib/apigee-hashcash-${hashcash.version}.jar"/>
+                    <include name="lib/guava-${guava.version}.jar"/>
 
                     <!--                    -->
 

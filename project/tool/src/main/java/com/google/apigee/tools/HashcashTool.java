@@ -6,7 +6,7 @@
 // Author: Dino
 // Created Thu Dec 22 13:36:54 2016
 //
-// Last saved: <2016-December-22 14:30:42>
+// Last saved: <2018-October-11 11:01:03>
 // ------------------------------------------------------------------
 //
 // Copyright (c) 2016 Google Inc.
@@ -19,13 +19,13 @@
 
 package com.google.apigee.tools;
 
+import com.google.apigee.HashCash;
 import java.security.NoSuchAlgorithmException;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
-
-import org.apache.commons.lang3.time.FastDateFormat;
-import com.google.apigee.HashCash;
 
 public class HashcashTool {
     private static final String optString = "vc:r:b:"; // getopt style
@@ -157,8 +157,10 @@ public class HashcashTool {
             System.out.printf("ver: %d\n", cash.getVersion());
             System.out.printf("bits: %d\n", cash.getComputedBits());
             System.out.printf("resource: %s\n", cash.getResource());
-            FastDateFormat fdf = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-            System.out.printf("date: %s\n", fdf.format(cash.getDate()));
+            DateTimeFormatter dtf = DateTimeFormatter
+                .ofPattern("uuuu-MM-dd'T'HH:mm:ss.SX")
+                .withZone(ZoneId.of("GMT"));
+            System.out.printf("date: %s\n", dtf.format(cash.getDate()));
             return;
         }
 
@@ -168,13 +170,11 @@ public class HashcashTool {
         return;
     }
 
-
     public static void usage() {
         System.out.println("HashcashTool: generate or verify a hashcash.\n");
         System.out.println("Usage:\n  java HashcashTool [-v] -r <resource> -b <bits>");
         System.out.println("Usage:\n  java HashcashTool [-v] -c <hashcash> ");
     }
-
 
     public static void main(String[] args) {
         try {

@@ -2,7 +2,7 @@
 # -*- mode:shell-script; coding:utf-8; -*-
 #
 # Created: <Mon Dec  5 17:51:55 2016>
-# Last Updated: <2016-December-22 14:40:08>
+# Last Updated: <2018-October-11 11:22:15>
 #
 
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -42,12 +42,12 @@ done
 ####################################################################
 
 if [[ ! -z "${resource}" && ! -z "${bits}" ]]; then
-    cash=$(java -classpath "$tooldir/hashcash-tool.jar:$tooldir/lib/*" com.google.apigee.tools.HashcashTool -r "${resource}" -b ${bits})
+    cash=$(java -classpath "$tooldir/hashcash-tool-1.0.1.jar:$tooldir/lib/*" com.google.apigee.tools.HashcashTool -r "${resource}" -b ${bits})
     echo $cash
     echo 
 elif [[ ! -z "${cash}" ]]; then
 
-    java -classpath "$tooldir/hashcash-tool.jar:$tooldir/lib/*" com.google.apigee.tools.HashcashTool -c "${cash}"
+    java -classpath "$tooldir/hashcash-tool-1.0.1.jar:$tooldir/lib/*" com.google.apigee.tools.HashcashTool -c "${cash}"
 else
     usage
 fi

@@ -1,40 +1,48 @@
 // HashcashCallout.java
 //
-// This is the source code for a Java callout for Apigee Edge.
-// This callout adds a node into a XML document.
+// Copyright 2018 Google LLC.
 //
-// --------------------------------------------
-// This code is licensed under the Apache 2.0 license. See the LICENSE
-// file that accompanies this source.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// ------------------------------------------------------------------
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 
-package com.google.apigee.edgecallouts;
+package com.google.apigee.edgecallouts.pow;
 
 import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.spi.Execution;
-import com.apigee.flow.message.MessageContext;
 import com.apigee.flow.message.Message;
-
-import java.text.DateFormat;
+import com.apigee.flow.message.MessageContext;
+import com.google.apigee.HashCash;
+import com.google.apigee.edgecallouts.util.VariableRefResolver;
+import com.google.common.base.Throwables;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.lang3.time.FastDateFormat;
-import org.apache.commons.lang3.StringUtils;
-import com.google.apigee.HashCash;
 
 public class HashcashCallout implements Execution {
     private static final String _varPrefix = "hashcash_";
     private static final String variableReferencePatternString = "(.*?)\\{([^\\{\\}]+?)\\}(.*?)";
     private static final Pattern variableReferencePattern = Pattern.compile(variableReferencePatternString);
-    // NB: SimpleDateFormat is not thread-safe
-    private static final FastDateFormat fdf = FastDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+    private static final DateTimeFormatter dtf = DateTimeFormatter
+        .ofPattern("uuuu-MM-dd'T'HH:mm:ss.SX")
+        .withZone(ZoneId.of("GMT"));
     private final static long defaultTimeSkewAllowanceMilliseconds = 10000L;
 
     private enum HashcashAction { Verify, Generate }
@@ -114,44 +122,40 @@ public class HashcashCallout implements Execution {
     private String resolvePropertyValue(String spec, MessageContext msgCtxt) {
         Matcher matcher = variableReferencePattern.matcher(spec);
         StringBuffer sb = new StringBuffer();
-        // System.out.printf("resolvePropertyValue spec(%s)\n", spec);
         while (matcher.find()) {
-            
-            // System.out.printf("resolvePropertyValue matcher: (%s) (%s) (%s)\n",
-            //                   matcher.group(1),
-            //                   matcher.group(2),
-            //                   matcher.group(3));
-            
             matcher.appendReplacement(sb, "");
             sb.append(matcher.group(1));
             sb.append((String) msgCtxt.getVariable(matcher.group(2)));
             sb.append(matcher.group(3));
         }
         matcher.appendTail(sb);
-        
-        //System.out.printf("resolvePropertyValue result: (%s)\n", sb.toString());
-        
         return sb.toString();
     }
 
+    private void clearVariables(MessageContext msgCtxt) {
+        msgCtxt.removeVariable(varName("error"));
+        msgCtxt.removeVariable(varName("exception"));
+        msgCtxt.removeVariable(varName("stacktrace"));
+        msgCtxt.removeVariable(varName("reason"));
+        msgCtxt.removeVariable(varName("isValid"));
+    }
 
-    private void recordTimeVariable(MessageContext msgContext, Date d, String label) {
-        msgContext.setVariable(varName(label), d.getTime() + "");
-        msgContext.setVariable(varName(label + "Formatted"), fdf.format(d));
+    private void recordTimeVariable(MessageContext msgContext, Instant instant, String label) {
+        msgContext.setVariable(varName(label), instant.toEpochMilli() + "");
+        msgContext.setVariable(varName(label + "Formatted"), dtf.format(instant));
     }
 
 
     public ExecutionResult execute (final MessageContext msgCtxt,
                                     final ExecutionContext execContext) {
         try {
-            msgCtxt.removeVariable(varName("reason"));
-            msgCtxt.removeVariable(varName("error"));
-            msgCtxt.removeVariable(varName("stacktrace"));
+            VariableRefResolver resolver = new VariableRefResolver(s -> ((String) msgCtxt.getVariable(s)));
+            clearVariables(msgCtxt);
             HashcashAction action = getAction(msgCtxt);
             if (action == HashcashAction.Verify) {
                 msgCtxt.setVariable(varName("isValid"), "false");
                 String hash = getHash(msgCtxt);
-                if (StringUtils.isEmpty(hash)) {
+                if (hash == null || hash.equals("")) {
                     msgCtxt.setVariable(varName("reason"), "hash resolves to an empty string");
                     return ExecutionResult.SUCCESS;
                 }
@@ -181,13 +185,13 @@ public class HashcashCallout implements Execution {
                     msgCtxt.setVariable(varName("timeCheckDisabled"), "true");
                 }
                 else {
-                    Date cashDate = hc.getDate();
-                    recordTimeVariable(msgCtxt, cashDate,"cashDate");
+                    Instant cashDate = hc.getDate();
+                    recordTimeVariable(msgCtxt, cashDate, "cashDate");
 
-                    Date now = new Date();
+                    Instant now = Instant.now();
                     recordTimeVariable(msgCtxt, now,"now");
 
-                    long ms = now.getTime() - cashDate.getTime();
+                    long ms = Duration.between(cashDate, now).toMillis();
                     msgCtxt.setVariable(varName("timeDelta"), String.valueOf(ms));
                     // positive means cash was computed in the past
                     if (ms<0) { ms *= -1; }
@@ -215,7 +219,7 @@ public class HashcashCallout implements Execution {
         catch (Exception e) {
             msgCtxt.setVariable(varName("reason"), "Exception");
             if (getDebug()) {
-                System.out.println(ExceptionUtils.getStackTrace(e));
+        System.out.println(Throwables.getStackTraceAsString(e));
             }
             String error = e.toString();
             msgCtxt.setVariable(varName("exception"), error);
@@ -226,7 +230,7 @@ public class HashcashCallout implements Execution {
             else {
                 msgCtxt.setVariable(varName("error"), error);
             }
-            msgCtxt.setVariable(varName("stacktrace"), ExceptionUtils.getStackTrace(e));
+            msgCtxt.setVariable(varName("stacktrace"), Throwables.getStackTraceAsString(e));
             return ExecutionResult.ABORT;
         }
 
