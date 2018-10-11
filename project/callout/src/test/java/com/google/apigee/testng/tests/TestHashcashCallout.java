@@ -141,7 +141,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "false");
+        Assert.assertEquals(isValid, "false", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertEquals(reason, "Exception", "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -161,7 +161,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "false");
+        Assert.assertEquals(isValid, "false", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertEquals(reason, "timestamp check failed", "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -182,7 +182,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "true");
+        Assert.assertEquals(isValid, "true", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertNull(reason, "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -209,7 +209,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "true");
+        Assert.assertEquals(isValid, "true", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertNull(reason, "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -239,7 +239,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "true");
+        Assert.assertEquals(isValid, "true", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertNull(reason, "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -274,7 +274,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "true");
+        Assert.assertEquals(isValid, "true", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertNull(reason, "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -313,7 +313,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "true");
+        Assert.assertEquals(isValid, "true", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertNull(reason, "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -348,7 +348,7 @@ public class TestHashcashCallout {
         ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
         Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
         String isValid = msgCtxt.getVariable("hashcash_isValid");
-        Assert.assertEquals(isValid, "false");
+        Assert.assertEquals(isValid, "false", "validity");
         String reason = msgCtxt.getVariable("hashcash_reason");
         Assert.assertEquals(reason, "resource mismatch", "reason");
         String error = msgCtxt.getVariable("hashcash_error");
@@ -394,7 +394,7 @@ public class TestHashcashCallout {
         if (cb >= 24) {
             // it's possible though we asked for only 20 bits, that we get 24.
             isValid = msgCtxt.getVariable("hashcash_isValid");
-            Assert.assertEquals(isValid, "true");
+            Assert.assertEquals(isValid, "true", "validity");
             reason = msgCtxt.getVariable("hashcash_reason");
             Assert.assertNull(reason, "reason");
             error = msgCtxt.getVariable("hashcash_error");
@@ -402,7 +402,7 @@ public class TestHashcashCallout {
         }
         else {
             isValid = msgCtxt.getVariable("hashcash_isValid");
-            Assert.assertEquals(isValid, "false");
+            Assert.assertEquals(isValid, "false", "validity");
             reason = msgCtxt.getVariable("hashcash_reason");
             Assert.assertEquals(reason, "hash collision insufficient", "reason");
             error = msgCtxt.getVariable("hashcash_error");
@@ -410,5 +410,92 @@ public class TestHashcashCallout {
         }
 
     }
+
+    @Test
+    public void test_BadFunction() {
+        Properties props = new Properties();
+        props.setProperty("debug", "false");
+        props.setProperty("action", "verify");
+        props.setProperty("function", "dino");
+        props.setProperty("requiredBits", "20");
+        props.setProperty("hash", "1:20:1303030600:adam@cypherspace.org::McMybZIhxKXu57jd:ckvi");
+        HashcashCallout callout = new HashcashCallout(props);
+
+        // execute and retrieve output
+        ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+        Assert.assertEquals(actualResult, ExecutionResult.ABORT, "result");
+        String isValid = msgCtxt.getVariable("hashcash_isValid");
+        Assert.assertEquals(isValid, "false", "validity");
+        String reason = msgCtxt.getVariable("hashcash_reason");
+        Assert.assertEquals(reason, "Exception", "reason");
+        String error = msgCtxt.getVariable("hashcash_error");
+        Assert.assertEquals(error, "dino MessageDigest not available", "error");
+    }
+
+    @Test
+    public void test_MismatchedFunction() {
+        // this will result in an "insufficient collision" state
+        Properties props = new Properties();
+        props.setProperty("debug", "true");
+        props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-256");
+        props.setProperty("requiredBits", "20");
+        props.setProperty("hash", "1:20:1303030600:adam@cypherspace.org::McMybZIhxKXu57jd:ckvi");
+        HashcashCallout callout = new HashcashCallout(props);
+
+        // execute and retrieve output
+        ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+        Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
+        String isValid = msgCtxt.getVariable("hashcash_isValid");
+        Assert.assertEquals(isValid, "false", "validity");
+        String reason = msgCtxt.getVariable("hashcash_reason");
+        Assert.assertEquals(reason, "hash collision insufficient", "reason");
+        String error = msgCtxt.getVariable("hashcash_error");
+        Assert.assertNull(error, "error");
+    }
+
+    @Test
+    public void test_SHA256() {
+        Properties props = new Properties();
+        props.setProperty("debug", "true");
+        props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-256");
+        props.setProperty("timeAllowance", "-1");
+        props.setProperty("requiredBits", "20");
+        props.setProperty("hash", "1:20:181011202759:dchiesa@google.com::87bfce98e08cde7:54171745c04f92b8");
+        HashcashCallout callout = new HashcashCallout(props);
+
+        // execute and retrieve output
+        ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+        Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
+        String isValid = msgCtxt.getVariable("hashcash_isValid");
+        Assert.assertEquals(isValid, "true", "validity");
+        String reason = msgCtxt.getVariable("hashcash_reason");
+        Assert.assertNull(reason, "reason");
+        String error = msgCtxt.getVariable("hashcash_error");
+        Assert.assertNull(error, "error");
+    }
+
+    @Test
+    public void test_SHA256_Expired() {
+        Properties props = new Properties();
+        props.setProperty("debug", "true");
+        props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-256");
+        props.setProperty("requiredBits", "20");
+        props.setProperty("hash", "1:20:181011202759:dchiesa@google.com::87bfce98e08cde7:54171745c04f92b8");
+        HashcashCallout callout = new HashcashCallout(props);
+
+        // execute and retrieve output
+        ExecutionResult actualResult = callout.execute(msgCtxt, exeCtxt);
+        Assert.assertEquals(actualResult, ExecutionResult.SUCCESS, "result");
+        String isValid = msgCtxt.getVariable("hashcash_isValid");
+        Assert.assertEquals(isValid, "false", "validity");
+        String reason = msgCtxt.getVariable("hashcash_reason");
+        Assert.assertEquals(reason, "timestamp check failed", "reason");
+        String error = msgCtxt.getVariable("hashcash_error");
+        Assert.assertNull(error, "error");
+    }
+
 
 }

@@ -3,19 +3,24 @@
 //
 // a tool for generating or verifying Hashcash .
 //
-// Author: Dino
-// Created Thu Dec 22 13:36:54 2016
-//
-// Last saved: <2018-October-11 11:01:03>
+// Last saved: <2018-October-11 13:27:14>
 // ------------------------------------------------------------------
+
+// Copyright 2016-2018 Google LLC.
 //
-// Copyright (c) 2016 Google Inc.
-// All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// Licensed under the Apache 2.0 Source License.
-// See the accompanying LICENSE file.
+//     https://www.apache.org/licenses/LICENSE-2.0
 //
-// ------------------------------------------------------------------
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 
 package com.google.apigee.tools;
 
@@ -28,7 +33,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class HashcashTool {
-    private static final String optString = "vc:r:b:"; // getopt style
+    private static final String optString = "vc:r:b:f:"; // getopt style
     private Hashtable<String, Object> options = new Hashtable<String, Object> ();
 
     // public HashcashTool () {} // uncomment if wanted
@@ -143,17 +148,21 @@ public class HashcashTool {
         Boolean verbose = (Boolean) this.options.get("v");
         HashCash cash;
         String resource = optionAsString(options.get("r"));
-        String bits = optionAsString(options.get("b"));
-        if (resource!= null && bits != null) {
-            int bitsInt = Integer.parseInt(bits);
-            cash = HashCash.mintCash(resource, bitsInt);
+        String requiredBits = optionAsString(options.get("b"));
+        String hashFunctionName = optionAsString(options.get("f"));
+        int intRequiredBits = (requiredBits == null) ? 20 : Integer.parseInt(requiredBits);
+
+        if (resource!= null) {
+            // generate
+            cash = HashCash.mintCash(resource, intRequiredBits, hashFunctionName);
             System.out.printf("%s\n", cash);
             return;
         }
 
         String hash = optionAsString(options.get("c"));
         if (hash != null) {
-            cash = new HashCash(hash);
+            // verify
+            cash = new HashCash(hash, hashFunctionName);
             System.out.printf("ver: %d\n", cash.getVersion());
             System.out.printf("bits: %d\n", cash.getComputedBits());
             System.out.printf("resource: %s\n", cash.getResource());
@@ -161,19 +170,21 @@ public class HashcashTool {
                 .ofPattern("uuuu-MM-dd'T'HH:mm:ss.SX")
                 .withZone(ZoneId.of("GMT"));
             System.out.printf("date: %s\n", dtf.format(cash.getDate()));
+            if (requiredBits == null)
+                System.out.printf("%sVALID\n", (intRequiredBits > cash.getComputedBits()) ? "NOT":"");
             return;
         }
-
 
         System.err.printf("unrecognized.\n");
         usage();
         return;
     }
 
+
     public static void usage() {
         System.out.println("HashcashTool: generate or verify a hashcash.\n");
-        System.out.println("Usage:\n  java HashcashTool [-v] -r <resource> -b <bits>");
-        System.out.println("Usage:\n  java HashcashTool [-v] -c <hashcash> ");
+        System.out.println("To generate:\n  java HashcashTool [-v] -r <resource> [-b <bits>] [-a <alg>]");
+        System.out.println("To verify:\n  java HashcashTool [-v] -c <hashcash> [-b <bits>] [-a <alg>]");
     }
 
     public static void main(String[] args) {

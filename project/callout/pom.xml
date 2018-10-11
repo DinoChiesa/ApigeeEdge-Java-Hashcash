@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee</groupId>
   <artifactId>edge-custom-hashcash-callout</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>Apigee Edge Custom Hashcash Callout</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
@@ -13,7 +13,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
-    <hashcash.version>1.0.1</hashcash.version>
+    <hashcash.version>1.0.2</hashcash.version>
     <guava.version>26.0-jre</guava.version>
     <apiproxy.java.rsrc.dir>../../bundle/apiproxy/resources/java</apiproxy.java.rsrc.dir>
     <testng.version>6.8.7</testng.version> <!-- current: 6.9.4 -->
@@ -21,7 +21,6 @@
   </properties>
 
   <dependencies>
-
 
     <dependency>
       <groupId>com.google.guava</groupId>

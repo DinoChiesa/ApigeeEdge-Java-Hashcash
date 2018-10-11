@@ -7,5 +7,5 @@
     <Property name='requiredResource'>{parsedInput.resource}</Property>
   </Properties>
   <ClassName>com.google.apigee.edgecallouts.pow.HashcashCallout</ClassName>
-  <ResourceURL>java://edge-custom-hashcash-callout-1.0.1.jar</ResourceURL>
+  <ResourceURL>java://edge-custom-hashcash-callout-1.0.2.jar</ResourceURL>
 </JavaCallout>

@@ -10,7 +10,6 @@
 // long as this message remains attached Please see the spec at:
 // http://www.hashcash.org/
 
-//package com.nettgryppa.security;
 package com.google.apigee;
 
 import java.security.MessageDigest;
@@ -36,8 +35,8 @@ import java.util.Map;
  * @version 1.1
  */
 public class HashCash implements Comparable<HashCash> {
-    public static final int DefaultVersion = 1;
-    private static final int hashLength = 160;
+    public static final int DEFAULT_HASHCASH_VERSION = 1;
+    private static final int MAX_BITS_VALUE = 160;
     private static final DateTimeFormatter[] FORMATS = {
       DateTimeFormatter.ofPattern("yyMMddHHmmss").withZone(ZoneId.of("GMT")),
       DateTimeFormatter.ofPattern("yyMMddHHmm").withZone(ZoneId.of("GMT"))
@@ -46,18 +45,28 @@ public class HashCash implements Comparable<HashCash> {
     private static long milliFor16 = -1;
 
     private String _token;
+    private String _hashFn;
     private int _version;
     private int _claimedBits;
     private int _computedBits;
+    private byte[] _digest;
     private Instant _instant;
     private String _resource;
     private Map<String, List<String>> _extensions;
 
     /**
-     * Parses and validates a HashCash.
-     * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
+     * Parses and validates a HashCash using the default hash function of SHA1.
+     * @throws NoSuchAlgorithmException If hashFunctionName is not a supported Message Digest
      */
     public HashCash(String cash) throws NoSuchAlgorithmException {
+        this(cash, "SHA1");
+    }
+
+    /**
+     * Parses and validates a HashCash using the named hash function.
+     * @throws NoSuchAlgorithmException If hashFunctionName is not a supported Message Digest
+     */
+    public HashCash(String cash, String hashFunctionName) throws NoSuchAlgorithmException {
         _token = cash;
         String[] parts = cash.split(":");
 
@@ -80,10 +89,18 @@ public class HashCash implements Comparable<HashCash> {
         }
         _resource = parts[index++];
         _extensions = deserializeExtensions(parts[index++]);
+        if (hashFunctionName==null || hashFunctionName.equals("")) hashFunctionName = "SHA1";
+        _hashFn = hashFunctionName;
 
-        MessageDigest md = MessageDigest.getInstance("SHA1");
+        MessageDigest md = getMd();
         md.update(cash.getBytes());
-        _computedBits = numberOfLeadingZeros(md.digest());
+        _digest = md.digest();
+        _computedBits = numberOfLeadingZeros(_digest);
+    }
+
+    private MessageDigest getMd() throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance(_hashFn);
+        return md;
     }
 
     private HashCash() throws NoSuchAlgorithmException { }
@@ -91,10 +108,22 @@ public class HashCash implements Comparable<HashCash> {
     /**
      * Mints a version 1 HashCash using now as the date
      * @param resource the string to be encoded in the HashCash
+     * @param requiredBits the number of bits required to be zero
+     * @param hashFunctionName the name of the hash function, like SHA1 or SHA-256, to be used to compute the HashCash
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, int value) throws NoSuchAlgorithmException {
-        return mintCash(resource, null, null, value, DefaultVersion);
+    public static HashCash mintCash(String resource, int requiredBits, String hashFunctionName) throws NoSuchAlgorithmException {
+        return mintCash(resource, null, null, requiredBits, DEFAULT_HASHCASH_VERSION, hashFunctionName);
+    }
+
+    /**
+     * Mints a version 1 HashCash using now as the date
+     * @param resource the string to be encoded in the HashCash
+     * @param requiredBits the number of collision bits required
+     * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
+     */
+    public static HashCash mintCash(String resource, int requiredBits) throws NoSuchAlgorithmException {
+        return mintCash(resource, null, null, requiredBits, DEFAULT_HASHCASH_VERSION);
     }
 
     /**
@@ -103,8 +132,8 @@ public class HashCash implements Comparable<HashCash> {
      * @param version Which version to mint.  Only valid values are 0 and 1
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, int value, int version) throws NoSuchAlgorithmException {
-        return mintCash(resource, null, null, value, version);
+    public static HashCash mintCash(String resource, int requiredBits, int version) throws NoSuchAlgorithmException {
+        return mintCash(resource, null, null, requiredBits, version);
     }
 
     /**
@@ -112,8 +141,8 @@ public class HashCash implements Comparable<HashCash> {
      * @param resource the string to be encoded in the HashCash
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Date date, int value) throws NoSuchAlgorithmException {
-      return mintCash(resource, null, date.toInstant(), value, DefaultVersion);
+    public static HashCash mintCash(String resource, Date date, int requiredBits) throws NoSuchAlgorithmException {
+      return mintCash(resource, null, date.toInstant(), requiredBits, DEFAULT_HASHCASH_VERSION);
     }
 
     /**
@@ -122,9 +151,9 @@ public class HashCash implements Comparable<HashCash> {
      * @param version Which version to mint.  Only valid values are 0 and 1
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Date date, int value, int version)
+    public static HashCash mintCash(String resource, Date date, int requiredBits, int version)
         throws NoSuchAlgorithmException {
-      return mintCash(resource, null, date.toInstant(), value, version);
+      return mintCash(resource, null, date.toInstant(), requiredBits, version);
     }
 
     /**
@@ -133,9 +162,9 @@ public class HashCash implements Comparable<HashCash> {
      * @param extensions Extra data to be encoded in the HashCash
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, int value)
+    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, int requiredBits)
         throws NoSuchAlgorithmException {
-        return mintCash(resource, extensions, null, value, DefaultVersion);
+        return mintCash(resource, extensions, null, requiredBits, DEFAULT_HASHCASH_VERSION);
     }
 
     /**
@@ -145,9 +174,9 @@ public class HashCash implements Comparable<HashCash> {
      * @param version Which version to mint.  Only valid values are 0 and 1
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, int value, int version)
+    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, int requiredBits, int version)
         throws NoSuchAlgorithmException {
-        return mintCash(resource, extensions, null, value, version);
+        return mintCash(resource, extensions, null, requiredBits, version);
     }
 
     /**
@@ -156,25 +185,27 @@ public class HashCash implements Comparable<HashCash> {
      * @param extensions Extra data to be encoded in the HashCash
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Date date, int value)
+    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Date date, int requiredBits)
         throws NoSuchAlgorithmException {
-      return mintCash(resource, extensions, date.toInstant(), value, DefaultVersion);
+      return mintCash(resource, extensions, date.toInstant(), requiredBits, DEFAULT_HASHCASH_VERSION);
     }
 
     /**
      * Mints a  HashCash
      * @param resource the string to be encoded in the HashCash
      * @param extensions Extra data to be encoded in the HashCash
+     * @param instant the moment to encode in this hashcash
+     * @param requiredBits the number of bits required to be zero
      * @param version Which version to mint.  Only valid values are 0 and 1
+     * @param hashFunctionName the name of the hash function, like SHA1 or SHA-256, to be used to compute the HashCash
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Instant instant, int value, int version)
-        throws NoSuchAlgorithmException {
+    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Instant instant, int requiredBits, int version, String hashFn)         throws NoSuchAlgorithmException {
         if(version < 0 || version > 1)
-            throw new IllegalArgumentException("Only supported versions are 0 and 1");
+            throw new IllegalArgumentException("version must be 0 or 1");
 
-        if(value < 0 || value > hashLength)
-            throw new IllegalArgumentException("Value must be between 0 and " + hashLength);
+        if(requiredBits < 0 || requiredBits > MAX_BITS_VALUE)
+            throw new IllegalArgumentException("requiredBits must be between 0 and " + MAX_BITS_VALUE);
 
         if(resource.contains(":"))
             throw new IllegalArgumentException("Resource may not contain a colon.");
@@ -183,9 +214,10 @@ public class HashCash implements Comparable<HashCash> {
           instant = Instant.now();
 
         HashCash result = new HashCash();
-        MessageDigest md = MessageDigest.getInstance("SHA1");
+        MessageDigest md = MessageDigest.getInstance(hashFn);
 
         result._resource = resource;
+        result._hashFn = hashFn;
         result._extensions = (null == extensions ? new HashMap<String, List<String> >() : extensions);
         result._instant = instant;
         result._version = version;
@@ -199,28 +231,41 @@ public class HashCash implements Comparable<HashCash> {
                                      FORMATS[0].format(instant),
                                      resource,
                                      serializeExtensions(extensions));
-                result._token = generateCash(prefix, value, md);
-                md.reset();
-                md.update(result._token.getBytes());
-                result._claimedBits = numberOfLeadingZeros(md.digest());
+                result._token = generateCash(prefix, requiredBits, md);
+                result._claimedBits = numberOfLeadingZeros(result._digest);
                 break;
 
             case 1:
-                result._claimedBits = value;
+                result._claimedBits = requiredBits;
                 prefix = String.format("%d:%d:%s:%s:%s:",
                                        version,
-                                       value,
+                                       requiredBits,
                                        FORMATS[0].format(instant),
                                        resource,
                                        serializeExtensions(extensions));
-                result._token = generateCash(prefix, value, md);
+                result._token = generateCash(prefix, requiredBits, md);
                 break;
 
             default:
                 throw new IllegalArgumentException("Only supported versions are 0 and 1");
         }
 
+        md.reset();
+        md.update(result._token.getBytes());
+        result._digest = md.digest();
         return result;
+    }
+
+    /**
+     * Mints a  HashCash
+     * @param resource the string to be encoded in the HashCash
+     * @param extensions Extra data to be encoded in the HashCash
+     * @param version Which version to mint.  Only valid values are 0 and 1
+     * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
+     */
+    public static HashCash mintCash(String resource, Map<String, List<String> > extensions, Instant instant, int requiredBits, int version)
+throws NoSuchAlgorithmException {
+        return mintCash(resource, extensions, instant, requiredBits, version, "SHA1");
     }
 
 
@@ -289,6 +334,13 @@ public class HashCash implements Comparable<HashCash> {
         return _computedBits;
     }
 
+    /**
+     * The computed digest
+     */
+    public byte[] getDigest() {
+        return _digest;
+    }
+
     public int getClaimedBits() {
         return _claimedBits;
     }
@@ -305,7 +357,7 @@ public class HashCash implements Comparable<HashCash> {
      * Actually tries various combinations to find a valid hash.  Form is of prefix + random_hex + ":" + random_hex
      * @throws NoSuchAlgorithmException If SHA1 is not a supported Message Digest
      */
-    private static String generateCash(String prefix, int value, MessageDigest md)
+    private static String generateCash(String prefix, int requiredBits, MessageDigest md)
         throws NoSuchAlgorithmException {
         SecureRandom rnd = SecureRandom.getInstance("SHA1PRNG");
         byte[] tmpBytes = new byte[8];
@@ -317,7 +369,7 @@ public class HashCash implements Comparable<HashCash> {
         prefix = prefix + Long.toHexString(random) + ":";
 
         String temp;
-        int tempValue;
+        int actualBits;
         byte[] bArray;
         do {
             counter++;
@@ -325,8 +377,8 @@ public class HashCash implements Comparable<HashCash> {
             md.reset();
             md.update(temp.getBytes());
             bArray = md.digest();
-            tempValue = numberOfLeadingZeros(bArray);
-        } while ( tempValue < value);
+            actualBits = numberOfLeadingZeros(bArray);
+        } while ( actualBits < requiredBits);
 
         return temp;
     }

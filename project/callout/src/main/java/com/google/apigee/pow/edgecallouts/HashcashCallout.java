@@ -17,6 +17,7 @@
 
 package com.google.apigee.edgecallouts.pow;
 
+import com.google.common.io.BaseEncoding;
 import com.apigee.flow.execution.ExecutionContext;
 import com.apigee.flow.execution.ExecutionResult;
 import com.apigee.flow.execution.spi.Execution;
@@ -56,6 +57,10 @@ public class HashcashCallout implements Execution {
 
     private String getHash(MessageContext msgCtxt) throws Exception {
         return getSimpleOptionalProperty("hash", msgCtxt);
+    }
+
+    private String getFunction(MessageContext msgCtxt) throws Exception {
+        return getSimpleOptionalProperty("function", msgCtxt);
     }
 
     private int getRequiredBits(MessageContext msgCtxt) throws Exception {
@@ -160,7 +165,12 @@ public class HashcashCallout implements Execution {
                     return ExecutionResult.SUCCESS;
                 }
                 msgCtxt.setVariable(varName("hash"), hash);
-                HashCash hc = new HashCash(hash);
+
+                String function = getFunction(msgCtxt);
+                msgCtxt.setVariable(varName("function"), function);
+
+                HashCash hc = (function!=null) ? new HashCash(hash,function) : new HashCash(hash);
+                //System.out.printf("Digest:%s\n", BaseEncoding.base16().encode(hc.getDigest()));
 
                 // 1. check version
                 if (hc.getVersion() != 1) {
@@ -173,6 +183,7 @@ public class HashcashCallout implements Execution {
                 msgCtxt.setVariable(varName("requiredBits"), String.valueOf(requiredBits));
                 int computedBits = hc.getComputedBits();
                 msgCtxt.setVariable(varName("computedBits"), String.valueOf(computedBits));
+                //System.out.printf("bits required:%d computed:%d\n", requiredBits, computedBits);
                 if (requiredBits > computedBits) {
                     msgCtxt.setVariable(varName("reason"), "hash collision insufficient");
                     return ExecutionResult.SUCCESS;

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee</groupId>
   <artifactId>hashcash-tool</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>Apigee Hashcash Tool</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
@@ -21,7 +21,7 @@
     <dependency>
       <groupId>com.google.apigee</groupId>
       <artifactId>apigee-hashcash</artifactId>
-      <version>1.0.1</version>
+      <version>1.0.2</version>
     </dependency>
   </dependencies>
 
