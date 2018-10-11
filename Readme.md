@@ -108,7 +108,14 @@ The policy is configured via properties set in the XML.  You can set these prope
 </JavaCallout>
 ```
 
-The above retrieves the hashcash from a header in the request, named "hash". You can modify that variable name to allow the policy to read the hash from any context variable.
+The above retrieves the hashcash from a header in the request, named "hash".
+
+"Verify" in this case means:
+- applying the hash function (by default SHA1) to the hashcash produces a hash that has 20 bites of leading zeros
+- the timestamp in the hash is current. By default this is "not less than 10 seconds in the past".
+
+To accept a hashcase submittal from a different place,  modify that variable name. You
+can uswe any context variable.
 
 
 ### Verifying a Hashcash with a Resource
@@ -126,6 +133,25 @@ The above retrieves the hashcash from a header in the request, named "hash". You
 </JavaCallout>
 ```
 
+In addition to the verification performed above, this also verifies that the "resource" portion of the hashcash is the specified hard-coded value. 
+
+### Verifying a Hashcash with a Resource, and a maximum time-delta of 5 seconds
+
+```xml
+<JavaCallout name='Java-Hashcash-1'>
+  <Properties>
+    <Property name='action'>verify</Property>
+    <Property name='hash'>{request.header.hash}</Property>
+    <Property name='requiredBits'>20</Property>
+    <Property name='timeAllowance'>5000</Property>
+    <Property name='requiredResource'>dchiesa@google.com</Property>
+  </Properties>
+  <ClassName>com.google.apigee.edgecallouts.pow.HashcashCallout</ClassName>
+  <ResourceURL>java://edge-custom-hashcash-callout-1.0.2.jar</ResourceURL>
+</JavaCallout>
+```
+
+
 ### Verifying a Hashcash with a Resource specified in a context variable
 
 ```xml
@@ -140,6 +166,8 @@ The above retrieves the hashcash from a header in the request, named "hash". You
   <ResourceURL>java://edge-custom-hashcash-callout-1.0.2.jar</ResourceURL>
 </JavaCallout>
 ```
+
+Same as above, but with a variable.
 
 ### Verifying a Hashcash with Resource and bits specified in a context variable
 
@@ -156,16 +184,14 @@ The above retrieves the hashcash from a header in the request, named "hash". You
 </JavaCallout>
 ```
 
-### Verifying a Hashcash while disabling the time check
-
-(NOT recommended.)
+### Verifying a Hashcash computed with SHA-256 as the hash function
 
 ```xml
 <JavaCallout name='Java-Hashcash-1'>
   <Properties>
     <Property name='action'>verify</Property>
     <Property name='hash'>{request.header.hash}</Property>
-    <Property name='timeAllowance'>-1</Property>
+    <Property name='function'>SHA-256</Property>
     <Property name='requiredBits'>20</Property>
     <Property name='requiredResource'>{client_id}</Property>
   </Properties>
@@ -174,14 +200,17 @@ The above retrieves the hashcash from a header in the request, named "hash". You
 </JavaCallout>
 ```
 
+This one performs the same verification, but uses the SHA-256 hash function. The
+sender (client?) would need to know apriori that the hash function to use is SHA-256.
+
+
 ### Additional Notes
 
 Consider whether you should configure your API Proxy to cache the
 Hashcash, and reject any repeated hashcash values.
 
-If you include the date check (this is the default behavior, and is
-recommended) in the hashcash verification, then you have protection
-against replay attacks due to the date, and you may not need the cache
+The implicit timestamp check in the hashcash verification provides protection
+against replay attacks.  For this reason, you may not need the cache
 check, if the date skew window is small enough. In any case the cache
 TTL can be relatively low, as long as it is larger than the time skew
 allowance.
@@ -190,7 +219,6 @@ allowance.
 ## Example API Proxy
 
 You can find an example proxy bundle that uses the policy, [here in this repo](bundle/apiproxy).
-
 
 
 ## License
