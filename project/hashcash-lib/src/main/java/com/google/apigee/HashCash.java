@@ -486,24 +486,23 @@ throws NoSuchAlgorithmException {
     private static int numberOfLeadingZeros(byte value) {
         if(value < 0)
             return 0;
-        if(value < 1)
+        if(value < 0x01)
             return 8;
-        else if (value < 2)
+        if (value < 0x02)
             return  7;
-        else if (value < 4)
+        if (value < 0x04)
             return 6;
-        else if (value < 8)
+        if (value < 0x08)
             return 5;
-        else if (value < 16)
+        if (value < 0x10)
             return 4;
-        else if (value < 32)
+        if (value < 0x20)
             return 3;
-        else if (value < 64)
+        if (value < 0x40)
             return 2;
-        else if (value < 128)
+        if (value < 0x80)
             return 1;
-        else
-            return 0;
+        return 0;
     }
 
     /**
