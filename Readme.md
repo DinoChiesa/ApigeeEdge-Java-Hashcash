@@ -70,7 +70,7 @@ Whether you use the pre-built JAR or you build it yourself, follow these instruc
     </JavaCallout>
    ```
 
-3. use the Edge UI, or a command-line tool like [importAndDeploy.js](https://github.com/DinoChiesa/apigee-edge-js/blob/master/examples/importAndDeploy.js) or similar to
+3. use the Edge UI, or a command-line tool like [importAndDeploy.js](https://github.com/DinoChiesa/apigee-edge-js-examples/blob/master/importAndDeploy.js) or similar to
    import the proxy into an Edge organization, and then deploy the proxy .
    Eg,
    ```
