@@ -56,8 +56,8 @@ Whether you use the pre-built JAR or you build it yourself, follow these instruc
 
 1. copy the jar file, available in  target/edge-custom-hashcash-callout-20200506.jar , if you have built the jar, or in [the repo](bundle/apiproxy/resources/java/edge-custom-hashcash-callout-20200506.jar) if you have not, to your apiproxy/resources/java directory. You can do this offline, or using the graphical Proxy Editor in the Apigee Edge Admin Portal.
 
-2. also copy the dependency... the apigee-hashcash-20200506.jar ... to the same directory.
-   Find this in target/lib/apigee-hashcash-20200506.jar
+2. also copy the dependency... the apigee-hashcash-1.0.2.jar ... to the same directory.
+   Find this in target/lib/apigee-hashcash-1.0.2.jar
 
 2. include an XML file for the Java callout policy in your
    apiproxy/resources/policies directory. It should look
