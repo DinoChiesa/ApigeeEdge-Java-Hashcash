@@ -1,6 +1,6 @@
 // HashcashCallout.java
 //
-// Copyright 2018 Google LLC.
+// Copyright 2018-2020 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,8 +38,9 @@ import java.util.regex.Pattern;
 
 public class HashcashCallout implements Execution {
     private static final String _varPrefix = "hashcash_";
-    private static final String variableReferencePatternString = "(.*?)\\{([^\\{\\}]+?)\\}(.*?)";
-    private static final Pattern variableReferencePattern = Pattern.compile(variableReferencePatternString);
+  private static final String variableReferencePatternString = "(.*?)\\{([^\\{\\} ]+?)\\}(.*?)";
+  private static final Pattern variableReferencePattern =
+      Pattern.compile(variableReferencePatternString);
 
     private static final DateTimeFormatter dtf = DateTimeFormatter
         .ofPattern("uuuu-MM-dd'T'HH:mm:ss.SX")
@@ -60,7 +61,10 @@ public class HashcashCallout implements Execution {
     }
 
     private String getFunction(MessageContext msgCtxt) throws Exception {
-        return getSimpleOptionalProperty("function", msgCtxt);
+      String function = getSimpleOptionalProperty("function", msgCtxt);
+      if (function == null || function.trim().equals(""))
+        return "SHA-256"; // default
+      return function;
     }
 
     private int getRequiredBits(MessageContext msgCtxt) throws Exception {
@@ -121,21 +125,24 @@ public class HashcashCallout implements Execution {
         return value;
     }
 
-    // If the value of a property contains a pair of curlies,
-    // eg, {apiproxy.name}, then "resolve" the value by de-referencing
-    // the context variable whose name appears between the curlies.
-    private String resolvePropertyValue(String spec, MessageContext msgCtxt) {
-        Matcher matcher = variableReferencePattern.matcher(spec);
-        StringBuffer sb = new StringBuffer();
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, "");
-            sb.append(matcher.group(1));
-            sb.append((String) msgCtxt.getVariable(matcher.group(2)));
-            sb.append(matcher.group(3));
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
+  // If the value of a property contains any pairs of curlies,
+  // eg, {apiproxy.name}, then "resolve" the value by de-referencing
+  // the context variables whose names appear between curlies.
+  protected static String resolvePropertyValue(String spec, MessageContext msgCtxt) {
+    Matcher matcher = variableReferencePattern.matcher(spec);
+    StringBuffer sb = new StringBuffer();
+    while (matcher.find()) {
+      matcher.appendReplacement(sb, "");
+      sb.append(matcher.group(1));
+      Object v = msgCtxt.getVariable(matcher.group(2));
+      if (v != null) {
+        sb.append((String) v);
+      }
+      sb.append(matcher.group(3));
     }
+    matcher.appendTail(sb);
+    return sb.toString();
+  }
 
     private void clearVariables(MessageContext msgCtxt) {
         msgCtxt.removeVariable(varName("error"));
@@ -149,7 +156,6 @@ public class HashcashCallout implements Execution {
         msgContext.setVariable(varName(label), instant.toEpochMilli() + "");
         msgContext.setVariable(varName(label + "Formatted"), dtf.format(instant));
     }
-
 
     public ExecutionResult execute (final MessageContext msgCtxt,
                                     final ExecutionContext execContext) {

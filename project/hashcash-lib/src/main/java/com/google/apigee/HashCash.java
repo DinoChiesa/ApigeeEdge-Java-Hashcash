@@ -2,7 +2,7 @@
 //
 // Taken from Gregory Rubin's implementation and modified.
 //
-// Copyright 2016 Google Inc.
+// Copyright 2016 Google LLC.
 //
 // ====================================================================
 // Copyright 2006 Gregory Rubin grrubin@gmail.com

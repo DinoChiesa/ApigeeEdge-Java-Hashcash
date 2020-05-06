@@ -4,8 +4,8 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.google.apigee</groupId>
-  <artifactId>edge-custom-hashcash-callout</artifactId>
-  <version>1.0.2</version>
+  <artifactId>apigee-custom-hashcash-callout</artifactId>
+  <version>20200506</version>
   <name>Apigee Edge Custom Hashcash Callout</name>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
@@ -26,6 +26,7 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -165,6 +166,7 @@ mvn install:install-file \
                     <include name="lib/*.jar"/>
                     <exclude name="lib/message-flow-1.0.0.jar"/>
                     <exclude name="lib/expressions-1.0.0.jar"/>
+                    <exclude name="lib/guava-*.jar"/>
                     <!--                    -->
                   </fileset>
                   <mapper type="flatten"/>

@@ -133,6 +133,7 @@ public class TestHashcashCallout {
         Properties props = new Properties();
         //props.setProperty("debug", "true");
         props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-1");
         props.setProperty("timeAllowance", "-1");
         props.setProperty("hash", "1:20:1303030600:adam@cypherspace.org::McMybZIhxKXu57jd:ckvi");
         HashcashCallout callout = new HashcashCallout(props);
@@ -153,6 +154,7 @@ public class TestHashcashCallout {
         Properties props = new Properties();
         props.setProperty("debug", "true");
         props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-1");
         props.setProperty("requiredBits", "20");
         props.setProperty("hash", "1:20:1303030600:adam@cypherspace.org::McMybZIhxKXu57jd:ckvi");
         HashcashCallout callout = new HashcashCallout(props);
@@ -173,6 +175,7 @@ public class TestHashcashCallout {
         Properties props = new Properties();
         props.setProperty("debug", "true");
         props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-1");
         props.setProperty("requiredBits", "20");
         props.setProperty("timeAllowance", "-1");
         props.setProperty("hash", "1:20:1303030600:adam@cypherspace.org::McMybZIhxKXu57jd:ckvi");
@@ -200,6 +203,7 @@ public class TestHashcashCallout {
         Properties props = new Properties();
         props.setProperty("debug", "true");
         props.setProperty("action", "verify");
+        props.setProperty("function", "SHA-1");
         props.setProperty("requiredBits", "12");
         props.setProperty("timeAllowance", "-1");
         props.setProperty("hash", "1:20:1303030600:adam@cypherspace.org::McMybZIhxKXu57jd:ckvi");
@@ -230,7 +234,7 @@ public class TestHashcashCallout {
         props.setProperty("action", "verify");
         props.setProperty("requiredBits", "18");
         props.setProperty("timeAllowance", "-1");
-        HashCash hc = HashCash.mintCash("dchiesa@google.com", 22);
+        HashCash hc = HashCash.mintCash("dchiesa@google.com", 22, "SHA-256");
         System.out.printf("hash: %s\n", hc.toString());
         props.setProperty("hash", hc.toString());
         HashcashCallout callout = new HashcashCallout(props);
@@ -265,7 +269,7 @@ public class TestHashcashCallout {
         props.setProperty("requiredBits", "18");
         props.setProperty("requiredResource", resource);
         props.setProperty("timeAllowance", "-1");
-        HashCash hc = HashCash.mintCash(resource, 20);
+        HashCash hc = HashCash.mintCash(resource, 20, "SHA-256");
         System.out.printf("hash: %s\n", hc.toString());
         props.setProperty("hash", hc.toString());
         HashcashCallout callout = new HashcashCallout(props);
@@ -301,7 +305,7 @@ public class TestHashcashCallout {
         props.setProperty("requiredBits", "{parsedInput.bits}");
         props.setProperty("requiredResource", resource);
         props.setProperty("timeAllowance", "-1");
-        HashCash hc = HashCash.mintCash(resource, 20);
+        HashCash hc = HashCash.mintCash(resource, 20, "SHA-256");
         System.out.printf("hash: %s\n", hc.toString());
         props.setProperty("hash", "{parsedInput.hash}");
         HashcashCallout callout = new HashcashCallout(props);
@@ -339,7 +343,7 @@ public class TestHashcashCallout {
         props.setProperty("requiredBits", "18");
         props.setProperty("requiredResource", resource);
         props.setProperty("timeAllowance", "-1");
-        HashCash hc = HashCash.mintCash(resource + " something else", 20);
+        HashCash hc = HashCash.mintCash(resource + " something else", 20, "SHA-256");
         System.out.printf("hash: %s\n", hc.toString());
         props.setProperty("hash", hc.toString());
         HashcashCallout callout = new HashcashCallout(props);
@@ -372,7 +376,7 @@ public class TestHashcashCallout {
         props.setProperty("action", "verify");
         props.setProperty("requiredBits", "24");
         props.setProperty("timeAllowance", "-1");
-        HashCash hc = HashCash.mintCash("dchiesa@google.com", 20);
+        HashCash hc = HashCash.mintCash("dchiesa@google.com", 20, "SHA-256");
         System.out.printf("hash: %s\n", hc.toString());
         props.setProperty("hash", hc.toString());
         HashcashCallout callout = new HashcashCallout(props);
